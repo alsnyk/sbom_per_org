@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-#
-# PoC for generating an SBOM using Snyk
 
 import requests
 import json
@@ -22,8 +20,8 @@ def get_config():
 
 
 def get_all_projects_in_org(org_id, snyk_header):
-    """Retrieve all projects in a Snyk Organization
-    """
+    #Retrieve all projects in a Snyk Organization
+ 
     projects = []
     url = f'{snyk_sbom_api}{org_id}/projects?version={version}&limit=100'
     
@@ -48,7 +46,7 @@ def get_all_projects_in_org(org_id, snyk_header):
     return projects 
 
 def mergeSBOMs(sbom_file_names):
-    # merge sboms here with cyclonedx
+    # Merge sboms here with cyclonedx
 
     command = ['cyclonedx', 'merge']
     command += ['--input-files'] + sbom_file_names
@@ -57,7 +55,9 @@ def mergeSBOMs(sbom_file_names):
 
 def main():
     sbom_file_names= []
+    final_proj_list = []
     config = get_config()
+
     snyk_header = {
                    'Authorization':'token ' + config['snyk_api_token'], 
                    'Content-Type': 'application/json'
@@ -65,12 +65,11 @@ def main():
 
     all_proj_list = get_all_projects_in_org(config['org_id'], snyk_header)
 
-    final_proj_list = []
+    
     for project in all_proj_list:
         if project['attributes']['type'] not in ['sast', 'cloudformationconfig', 'helmconfig', 'k8sconfig', 'terraformconfig']:
             final_proj_list.append([project['id'], project['attributes']['name']])
     
-    # out_file_name = "sbom_output.json"
     
     for project_id in final_proj_list:
         result = requests.get(snyk_sbom_api + config['org_id'] + '/projects/' + project_id[0] + '/sbom', params=snyk_params, headers=snyk_header)
